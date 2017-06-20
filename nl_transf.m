@@ -1,38 +1,41 @@
 is_orth = false;
-func = @tanh;  % function to choose: sigmoid, morino_tanh, relu, poly2
-N = 100;
-total_depth = 10;
-x = [-N:0.5:N];
-y = zeros(size(x));
+maintain_figure = false;
+func = @morino_tanh;  % function to choose: sigmoid, morino_tanh, relu, poly2
+bdd = 100;
+instance_num = 2;
+total_depth = 15;
+observation_time = 1.0; % how long each figure will be reserved on the desktop
+
+
+
+% generate a family of rays on the R^2 plane
+% z_buffer = linear_basis_generate(instance_num, bdd);
+
+
+z_buffer = circle_basis_generate(instance_num, true);
 
 
 
 
-% generate a geometric object in R^2. Here we generate several ray on R^2,
-% which can construct an dense set of the plane.
-z = [x; y]; 
-d_theta = 0.05*pi;
-z_buffer = zeros(3, size(z,2),20);
 
-
-
-% generate a infiniesimal rotation on two degree
-R = [cos(d_theta), -sin(d_theta); sin(d_theta), cos(d_theta)];
-
-for i=1:20
-    z_buffer(1:2,:,i) = R*z;
-    z = R*z;
+figure;
+% draw the dim-2 object on R^2 plane
+for i=1:instance_num
+    hold on;
+    plot(z_buffer(1,:,i), z_buffer(2,:,i));
 end
 
 
 
-
+pause(observation_time);
 
 
 for l=1:total_depth
 
 % new a figure at each layer
 figure;
+
+
     
     
 % the outer loop controls the depth of the neural net 
@@ -50,11 +53,11 @@ end
 b = randn(3, 1);
 
 
-    for i=1:20
+    for i=1:instance_num
         if(l==1)
-         z_prime = func(-W*z_buffer(1:2,:,i)-b*ones(1, size(z,2)));
+         z_prime = func(-W*z_buffer(1:2,:,i)-b*ones(1, size(z_buffer,2)));
         else
-         z_prime = func(-W*z_buffer(:,:,i)-b*ones(1, size(z,2)));
+         z_prime = func(-W*z_buffer(:,:,i)-b*ones(1, size(z_buffer,2)));
         end
         
         z_buffer(:,:,i) = z_prime; % update the z buffer
@@ -63,7 +66,20 @@ b = randn(3, 1);
         hold on;
         plot3(z_prime(1,:), z_prime(2,:), z_prime(3, :));
     end
+    
+    
+    pause(observation_time);
+    
+    
 end
+
+
+
+if(~maintain_figure)
+    close all;
+end
+
+
 
 
 function [y] = sigmoid(x)
