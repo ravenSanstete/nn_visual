@@ -1,9 +1,10 @@
-is_orth = false;
-maintain_figure = false;
-func = @morino_tanh;  % function to choose: sigmoid, morino_tanh, relu, poly2
+is_orth = true;
+is_sym = false;
+maintain_figure = true;
+func = @sigmoid;  % function to choose: sigmoid, morino_tanh, relu, poly2
 bdd = 100;
-instance_num = 2;
-total_depth = 15;
+instance_num = 3;
+total_depth = 30;
 observation_time = 1.0; % how long each figure will be reserved on the desktop
 
 
@@ -38,27 +39,29 @@ figure;
 
     
     
-% the outer loop controls the depth of the neural net 
-if(l==1)
-W = randn(3, 2);
-else
 W = randn(3, 3);
-end
+
 
 
 % if requires orthogonal random weight
 if(is_orth)
     W = orth(W);
 end
+
+
+
+% whether the weight matrix is symmetric, which should not be set at the
+% same time with is_orth
+if(is_sym)
+    P = randn(3,3);
+    W = 0.5*(P+P');
+end
 b = randn(3, 1);
 
 
     for i=1:instance_num
-        if(l==1)
-         z_prime = func(-W*z_buffer(1:2,:,i)-b*ones(1, size(z_buffer,2)));
-        else
-         z_prime = func(-W*z_buffer(:,:,i)-b*ones(1, size(z_buffer,2)));
-        end
+        z_prime = func(-W*z_buffer(:,:,i)-b*ones(1, size(z_buffer,2)));
+
         
         z_buffer(:,:,i) = z_prime; % update the z buffer
          
